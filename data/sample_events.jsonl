@@ -1,0 +1,10 @@
+{"timestamp":"2026-03-07T15:10:00Z","src_ip":"10.0.0.5","dst_ip":"8.8.8.8","src_port":53001,"dst_port":53,"protocol":"udp","event_type":"dns_query","query":"example.com","source":"sample"}
+{"timestamp":"2026-03-07T15:10:01Z","src_ip":"10.0.0.8","dst_ip":"203.0.113.50","src_port":49821,"dst_port":443,"protocol":"tcp","event_type":"network","source":"sample"}
+{"timestamp":"2026-03-07T15:10:02Z","src_ip":"10.0.0.9","dst_ip":"1.1.1.1","src_port":53002,"dst_port":53,"protocol":"udp","event_type":"dns_query","query":"a9s8d7f6g5h4j3k2l1qwertyuiopzxcvbnm123456.bad-domain.example","source":"sample"}
+{"timestamp":"2026-03-07T15:10:03Z","src_ip":"172.16.1.50","dst_ip":"10.0.0.20","event_type":"auth","username":"admin","status":"failed","source":"sample"}
+{"timestamp":"2026-03-07T15:10:04Z","src_ip":"172.16.1.50","dst_ip":"10.0.0.20","event_type":"auth","username":"admin","status":"failed","source":"sample"}
+{"timestamp":"2026-03-07T15:10:05Z","src_ip":"172.16.1.50","dst_ip":"10.0.0.20","event_type":"auth","username":"admin","status":"failed","source":"sample"}
+{"timestamp":"2026-03-07T15:10:06Z","src_ip":"172.16.1.50","dst_ip":"10.0.0.20","event_type":"auth","username":"admin","status":"failed","source":"sample"}
+{"timestamp":"2026-03-07T15:10:07Z","src_ip":"172.16.1.50","dst_ip":"10.0.0.20","event_type":"auth","username":"admin","status":"failed","source":"sample"}
+{"timestamp":"2026-03-07T15:10:08Z","src_ip":"172.16.1.50","dst_ip":"10.0.0.20","event_type":"auth","username":"admin","status":"failed","source":"sample"}
+{"timestamp":"2026-03-07T15:10:09Z","src_ip":"172.16.1.50","dst_ip":"10.0.0.20","event_type":"auth","username":"admin","status":"failed","source":"sample"}

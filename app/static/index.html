@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NetSentinel — Live SOC Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar glass">
+      <div>
+        <div class="brand">
+          <div class="brand-logo">N</div>
+          <div>
+            <h1>NetSentinel</h1>
+            <p>Realtime NDR / IOC / Detection</p>
+          </div>
+        </div>
+
+        <nav class="nav-block">
+          <button class="nav-pill active">Dashboard</button>
+          <button class="nav-pill" onclick="scrollToSection('alertsPanel')">Alarmlar</button>
+          <button class="nav-pill" onclick="scrollToSection('eventsPanel')">Eventler</button>
+          <button class="nav-pill" onclick="scrollToSection('intelPanel')">Threat Intel</button>
+        </nav>
+
+        <section class="control-card">
+          <div class="section-head compact">
+            <h3>Kontroller</h3>
+            <span class="live-pill" id="socketBadge">WS bağlanıyor</span>
+          </div>
+
+          <label class="label">Arayüz (opsiyonel)</label>
+          <div class="inline-control">
+            <input id="ifaceInput" class="input" placeholder="eth0 / wlan0 / boş bırak" />
+          </div>
+
+          <div class="button-grid">
+            <button class="btn primary" onclick="startSniffer()">Sniffer Başlat</button>
+            <button class="btn" onclick="stopSniffer()">Sniffer Durdur</button>
+            <button class="btn" onclick="reloadIntel()">Intel Yenile</button>
+            <button class="btn" onclick="exportJson('alerts')">Alert Export</button>
+          </div>
+
+          <div class="status-box" id="statusBox">Hazır. Sistemin nabzı burada atıyor.</div>
+        </section>
+
+        <section class="control-card" id="intelPanel">
+          <div class="section-head compact">
+            <h3>JSONL Yükle</h3>
+            <span class="muted">offline test</span>
+          </div>
+          <label for="jsonFile" class="upload-box">
+            <input id="jsonFile" type="file" accept=".jsonl,.txt,application/json" hidden />
+            <span class="upload-title">Dosya seç veya bırak</span>
+            <span class="upload-sub">sample_events.jsonl ile direkt akıtmaya başlarsın</span>
+          </label>
+          <button class="btn primary block" onclick="uploadJsonl()">JSONL İçeri Aktar</button>
+        </section>
+      </div>
+
+      <section class="mini-stats control-card">
+        <div class="mini-row"><span>Son güncelleme</span><strong id="generatedAt">-</strong></div>
+        <div class="mini-row"><span>Tehlike skoru</span><strong id="dangerScore">0/100</strong></div>
+        <div class="mini-row"><span>IOC hit</span><strong id="iocHits">0</strong></div>
+        <div class="mini-row"><span>High/Critical</span><strong id="hotAlerts">0</strong></div>
+      </section>
+    </aside>
+
+    <main class="main-area">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">AĞ GÜVENLİĞİ İZLEME</div>
+          <h2>Canlı trafik, saldırı tespiti ve threat intel tek ekranda</h2>
+        </div>
+        <div class="topbar-actions">
+          <input id="globalFilter" class="input search" placeholder="IP, domain, rule ara..." oninput="applyFilter()" />
+          <button class="btn ghost" onclick="fetchStats(true)">Yenile</button>
+        </div>
+      </header>
+
+      <section class="hero-grid">
+        <article class="metric-card glow">
+          <div class="metric-title">Toplam Event</div>
+          <div class="metric-value" id="eventsTotal">0</div>
+          <div class="sparkline" id="eventsSpark"></div>
+        </article>
+        <article class="metric-card glow warn">
+          <div class="metric-title">Toplam Alarm</div>
+          <div class="metric-value" id="alertsTotal">0</div>
+          <div class="metric-sub" id="alertRate">Anlık sessizlik. Umarım öyledir :)</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-title">TCP / UDP</div>
+          <div class="metric-split">
+            <div><strong id="protoTcp">0</strong><span>TCP</span></div>
+            <div><strong id="protoUdp">0</strong><span>UDP</span></div>
+          </div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-title">Risk Özeti</div>
+          <div class="risk-bar"><span id="riskFill"></span></div>
+          <div class="metric-sub" id="riskLabel">Düşük profil</div>
+        </article>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel glass" id="overviewPanel">
+          <div class="section-head">
+            <h3>Genel Görünüm</h3>
+            <span class="muted">son snapshot üzerinden hesaplanır</span>
+          </div>
+          <div class="overview-grid">
+            <div class="viz-card">
+              <div class="viz-title">Protokol Dağılımı</div>
+              <div class="donut-wrap">
+                <div class="donut" id="protocolDonut"></div>
+                <div class="legend" id="protocolLegend"></div>
+              </div>
+            </div>
+            <div class="viz-card">
+              <div class="viz-title">Severity Dağılımı</div>
+              <div class="stack-bars" id="severityBars"></div>
+            </div>
+            <div class="viz-card">
+              <div class="viz-title">Top Source IP</div>
+              <div class="rank-list" id="topSources"></div>
+            </div>
+            <div class="viz-card">
+              <div class="viz-title">Top Hedef Portlar</div>
+              <div class="rank-list" id="topPorts"></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel glass" id="alertsPanel">
+          <div class="section-head">
+            <h3>Son Alarmlar</h3>
+            <div class="inline-tags">
+              <span class="tag">IOC</span>
+              <span class="tag">Port Scan</span>
+              <span class="tag">DNS Abuse</span>
+              <span class="tag">Brute Force</span>
+            </div>
+          </div>
+          <div class="table-wrap tall">
+            <table>
+              <thead>
+                <tr>
+                  <th>Zaman</th>
+                  <th>Rule</th>
+                  <th>Severity</th>
+                  <th>Skor</th>
+                  <th>Kaynak</th>
+                  <th>Hedef</th>
+                  <th>Sebep</th>
+                </tr>
+              </thead>
+              <tbody id="alertsBody"></tbody>
+            </table>
+          </div>
+        </article>
+
+        <article class="panel glass span-2" id="eventsPanel">
+          <div class="section-head">
+            <h3>Son Eventler</h3>
+            <div class="inline-tags" id="eventTypeTags"></div>
+          </div>
+          <div class="table-wrap tall">
+            <table>
+              <thead>
+                <tr>
+                  <th>Zaman</th>
+                  <th>Source</th>
+                  <th>Src</th>
+                  <th>Dst</th>
+                  <th>Proto</th>
+                  <th>Type</th>
+                  <th>Query / Host</th>
+                </tr>
+              </thead>
+              <tbody id="eventsBody"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
