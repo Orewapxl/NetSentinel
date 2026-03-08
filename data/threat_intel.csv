@@ -1,0 +1,7 @@
+type,value,severity,source,note
+ip,185.220.101.1,high,local-feed,Tor exit node sample
+ip,45.95.147.236,critical,local-feed,Known malicious sample
+ip,203.0.113.50,medium,local-feed,Lab IOC example
+domain,malicious.test,high,local-feed,Test malicious domain
+domain,bad-domain.example,critical,local-feed,Test bad domain
+domain,evil-c2.net,critical,local-feed,C2 sample

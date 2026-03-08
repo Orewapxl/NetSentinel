@@ -1,0 +1,43 @@
+services:
+  netsentinel:
+    build: .
+    container_name: netsentinel
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      NETSENTINEL_APP_ENV: production
+      NETSENTINEL_DATA_DIR: /app/data
+      NETSENTINEL_RUNTIME_DIR: /app/data/runtime
+      NETSENTINEL_THREAT_INTEL_CSV: /app/data/threat_intel.csv
+      NETSENTINEL_PERSIST_RUNTIME: "true"
+      NETSENTINEL_MAX_EVENTS: "5000"
+      NETSENTINEL_MAX_ALERTS: "1000"
+      NETSENTINEL_WEBSOCKET_CLIENT_LIMIT: "100"
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:8000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  netsentinel-sniffer:
+    build: .
+    container_name: netsentinel-sniffer
+    restart: unless-stopped
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    environment:
+      NETSENTINEL_APP_ENV: production
+      NETSENTINEL_DATA_DIR: /app/data
+      NETSENTINEL_RUNTIME_DIR: /app/data/runtime
+      NETSENTINEL_THREAT_INTEL_CSV: /app/data/threat_intel.csv
+      NETSENTINEL_PERSIST_RUNTIME: "true"
+    volumes:
+      - ./data:/app/data
+    command: ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-w", "1", "-b", "0.0.0.0:8001", "app.main:app"]
+    profiles: ["sniffer"]

@@ -1,0 +1,12 @@
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.log
+.venv
+venv
+node_modules
+app/__pycache__
+app/static/*.map
