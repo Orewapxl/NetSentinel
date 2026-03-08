@@ -4,18 +4,18 @@ import asyncio
 import json
 from typing import Any
 
-from fastapi import FastAPI, File, Query, UploadFile, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, File, Query, Request, UploadFile, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .collector import LiveSniffer
-from .config import APP_ENV, BASE_DIR, PERSIST_RUNTIME, THREAT_INTEL_CSV, WEBSOCKET_CLIENT_LIMIT
+from .config import APP_ENV, BASE_DIR, FORWARDED_ALLOW_IPS, PERSIST_RUNTIME, PROXY_HEADERS, ROOT_PATH, THREAT_INTEL_CSV, WEBSOCKET_CLIENT_LIMIT
 from .detectors import RuleEngine
 from .models import Event
 from .store import RuntimeStore
 from .threat_intel import ThreatIntel
 
-app = FastAPI(title="NetSentinel", version="1.1.0")
+app = FastAPI(title="NetSentinel", version="1.2.0", root_path=ROOT_PATH)
 store = RuntimeStore()
 intel = ThreatIntel()
 engine = RuleEngine()
@@ -45,7 +45,7 @@ async def index() -> FileResponse:
 
 
 @app.get("/api/health")
-async def health() -> dict[str, Any]:
+async def health(request: Request) -> dict[str, Any]:
     return {
         "status": "ok",
         "environment": APP_ENV,
@@ -53,6 +53,12 @@ async def health() -> dict[str, Any]:
         "threat_intel_file": str(THREAT_INTEL_CSV),
         "ip_ioc_count": len(intel.by_ip),
         "domain_ioc_count": len(intel.by_domain),
+        "root_path": ROOT_PATH,
+        "proxy_headers": PROXY_HEADERS,
+        "forwarded_allow_ips": FORWARDED_ALLOW_IPS,
+        "request_scheme": request.url.scheme,
+        "request_host": request.headers.get("host", ""),
+        "forwarded_proto": request.headers.get("x-forwarded-proto", ""),
     }
 
 

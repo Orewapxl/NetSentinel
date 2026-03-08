@@ -16,6 +16,9 @@ PORT = int(os.getenv("NETSENTINEL_PORT", "8000"))
 LOG_LEVEL = os.getenv("NETSENTINEL_LOG_LEVEL", "info")
 PERSIST_RUNTIME = os.getenv("NETSENTINEL_PERSIST_RUNTIME", "true").strip().lower() in {"1", "true", "yes", "on"}
 APP_ENV = os.getenv("NETSENTINEL_APP_ENV", "production")
+PROXY_HEADERS = os.getenv("NETSENTINEL_PROXY_HEADERS", "true").strip().lower() in {"1", "true", "yes", "on"}
+FORWARDED_ALLOW_IPS = os.getenv("NETSENTINEL_FORWARDED_ALLOW_IPS", "*")
+ROOT_PATH = os.getenv("NETSENTINEL_ROOT_PATH", "").strip()
 
 RUNTIME_DIR.mkdir(parents=True, exist_ok=True)
 DATA_DIR.mkdir(parents=True, exist_ok=True)
